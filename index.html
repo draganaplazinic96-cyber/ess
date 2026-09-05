@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="sr-Latn">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ESS · Ponavljanje</title>
+<style>
+  :root{
+    --paper:#f2eee4;
+    --paper-2:#e8e2d5;
+    --ink:#18231f;
+    --muted:#6d746e;
+    --green:#183c32;
+    --green-2:#2f5a4d;
+    --line:#b9b2a4;
+    --red:#8b2f2b;
+    --red-soft:#f1dfdb;
+    --white:#fffdf8;
+    --shadow:0 18px 50px rgba(39,47,43,.12);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    color:var(--ink);
+    background:
+      linear-gradient(rgba(255,255,255,.24),rgba(255,255,255,.24)),
+      repeating-linear-gradient(0deg,transparent 0 31px,rgba(24,60,50,.025) 31px 32px),
+      var(--paper);
+    font-family:Georgia,"Times New Roman",serif;
+  }
+  button,input{font:inherit}
+  .page{max-width:980px;margin:0 auto;padding:28px 22px 56px}
+  .sheet{
+    background:rgba(255,253,248,.8);
+    border:1px solid rgba(24,60,50,.2);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  header{
+    position:relative;
+    padding:30px 34px 24px;
+    border-bottom:1px solid var(--green);
+    background:
+      linear-gradient(90deg,rgba(255,253,248,.97) 0 52%,rgba(255,253,248,.83) 72%,rgba(255,253,248,.72) 100%),
+      repeating-linear-gradient(90deg,transparent 0 39px,rgba(24,60,50,.06) 39px 40px),
+      repeating-linear-gradient(0deg,transparent 0 29px,rgba(24,60,50,.06) 29px 30px);
+  }
+  .market-chart{
+    position:absolute;
+    right:28px;top:28px;
+    width:300px;height:122px;
+    opacity:.34;
+    pointer-events:none;
+  }
+  .market-chart svg{width:100%;height:100%;display:block}
+  .market-chart .grid{stroke:rgba(24,60,50,.18);stroke-width:1}
+  .market-chart .axis{stroke:rgba(24,60,50,.35);stroke-width:1}
+  .market-chart .trend{fill:none;stroke:var(--green);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+  .market-chart .fall{fill:none;stroke:var(--red);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+  .market-chart .point{fill:var(--green)}
+  .market-chart .point.red{fill:var(--red)}
+  .market-chart .bar-up{fill:rgba(24,60,50,.42)}
+  .market-chart .bar-down{fill:rgba(139,47,43,.38)}
+  .masthead{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--green);margin-bottom:11px}
+  h1{font-size:clamp(42px,7vw,74px);line-height:.88;margin:0;color:var(--green);font-weight:700;letter-spacing:-.045em;max-width:620px}
+  h1 span{display:block}
+  .exam{margin-top:15px;font-size:19px;letter-spacing:.04em}
+  .top-grid{display:grid;grid-template-columns:minmax(0,520px);gap:24px;margin-top:24px;align-items:end}
+  .progress-card{border:1px solid var(--green);padding:14px 16px;background:rgba(255,253,248,.65)}
+  .progress-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--green);font-weight:700}
+  .progress-big{display:flex;align-items:baseline;gap:8px;margin:4px 0 9px}
+  .progress-big strong{font-size:33px;color:var(--green)}
+  .progress-big span{font-size:14px;color:var(--muted)}
+  .bar{height:8px;background:#d5d1c6;border-radius:999px;overflow:hidden}
+  .bar>i{display:block;height:100%;width:0;background:var(--green);transition:width .2s ease}
+  main{padding:8px 34px 30px}
+  .section{padding:20px 0 8px}
+  .section-head{display:flex;gap:14px;align-items:flex-end;border-bottom:1px solid var(--green);padding-bottom:7px;margin-bottom:5px}
+  .section-no{min-width:42px;height:30px;background:var(--green);color:var(--white);display:grid;place-items:center;font-weight:700;font-size:18px}
+  .section-title{font-size:20px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.01em;flex:1}
+  .range{font-size:13px;color:var(--green);font-weight:700;letter-spacing:.08em}
+  .items{display:grid}
+  .item{
+    display:grid;
+    grid-template-columns:34px 42px 1fr 46px;
+    align-items:center;
+    min-height:39px;
+    border-bottom:1px solid rgba(24,60,50,.11);
+    gap:7px;
+  }
+  .item:last-child{border-bottom:none}
+  .done{
+    appearance:none;width:18px;height:18px;border:1.5px solid var(--green);background:transparent;cursor:pointer;position:relative;margin-left:3px
+  }
+  .done:checked{background:var(--green)}
+  .done:checked:after{content:"✓";position:absolute;inset:-2px 0 0 1px;color:white;font-size:16px;line-height:18px}
+  .qno{font-size:13px;color:var(--muted);font-weight:700;text-align:right;padding-right:5px}
+  .qtext{font-size:15px;line-height:1.3;padding:7px 0}
+  .item.is-done .qtext{text-decoration:line-through;color:#8f938e}
+  .bankrupt{
+    width:38px;height:28px;border:1px solid transparent;background:transparent;color:var(--red);cursor:pointer;border-radius:3px;font-size:19px;display:grid;place-items:center
+  }
+  .bankrupt:hover{background:rgba(139,47,43,.08)}
+  .bankrupt.active{background:var(--red);color:white;border-color:var(--red)}
+  .pause{display:flex;align-items:center;gap:12px;margin:13px 0 0;color:#77766f;font-size:10px;letter-spacing:.34em;text-transform:uppercase;font-style:italic;white-space:nowrap}
+  .pause:before,.pause:after{content:"";height:1px;background:#aaa69b;flex:1}
+  .red-zone{margin:28px 0 4px;border:1.5px solid var(--red);background:linear-gradient(90deg,rgba(139,47,43,.08),rgba(139,47,43,.02));}
+  .red-head{display:grid;grid-template-columns:72px 1fr auto;gap:14px;align-items:center;padding:16px 18px;border-bottom:1px solid rgba(139,47,43,.35)}
+  .crash-icon{font-size:42px;line-height:1;text-align:center;color:var(--red)}
+  .red-head h2{margin:0;color:var(--red);font-size:28px;letter-spacing:.02em}
+  .red-count{font-size:13px;color:var(--red);font-weight:700}
+  .red-list{padding:5px 18px 14px}
+  .red-empty{padding:18px 2px;color:#8a7772;font-style:italic;font-size:14px}
+  .red-item{display:grid;grid-template-columns:28px 36px 1fr 34px;align-items:center;gap:6px;min-height:38px;border-bottom:1px solid rgba(139,47,43,.14)}
+  .red-item:last-child{border-bottom:none}
+  .red-done{appearance:none;width:17px;height:17px;border:1.5px solid var(--red);cursor:pointer;position:relative;background:transparent}
+  .red-done:checked{background:var(--red)}
+  .red-done:checked:after{content:"✓";position:absolute;inset:-2px 0 0 1px;color:white;font-size:15px}
+  .red-item.complete .red-qtext{text-decoration:line-through;opacity:.55}
+  .red-qno{font-size:12px;color:var(--red);font-weight:700;text-align:right}
+  .red-qtext{font-size:14px;padding:7px 0}
+  .remove-bankrupt{border:0;background:transparent;color:var(--red);font-size:17px;cursor:pointer}
+  .footer{display:flex;justify-content:space-between;align-items:center;padding:14px 34px 18px;border-top:1px solid rgba(24,60,50,.2);font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+  .reset{border:1px solid var(--green);background:transparent;color:var(--green);padding:7px 10px;cursor:pointer;text-transform:uppercase;letter-spacing:.1em;font-size:10px}
+  .reset:hover{background:var(--green);color:white}
+  @media(max-width:720px){
+    .page{padding:10px}.sheet{box-shadow:none}header{padding:22px 18px 18px}header:after{display:none}
+    .top-grid{grid-template-columns:1fr}.market-chart{display:none}main{padding:6px 18px 24px}
+    .section-head{gap:9px}.section-title{font-size:16px}.range{font-size:11px}
+    .item{grid-template-columns:28px 32px 1fr 40px}.qtext{font-size:14px}.red-head{grid-template-columns:50px 1fr}.red-count{grid-column:2}.crash-icon{font-size:34px}
+    .footer{padding:13px 18px}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="sheet">
+    <header>
+      <div class="masthead">Univerzitet u Beogradu · Fakultet političkih nauka</div>
+      <div class="market-chart" aria-hidden="true">
+        <svg viewBox="0 0 300 122" preserveAspectRatio="none">
+          <g>
+            <line class="grid" x1="0" y1="24" x2="300" y2="24"/><line class="grid" x1="0" y1="55" x2="300" y2="55"/><line class="grid" x1="0" y1="86" x2="300" y2="86"/>
+            <line class="grid" x1="50" y1="0" x2="50" y2="112"/><line class="grid" x1="100" y1="0" x2="100" y2="112"/><line class="grid" x1="150" y1="0" x2="150" y2="112"/><line class="grid" x1="200" y1="0" x2="200" y2="112"/><line class="grid" x1="250" y1="0" x2="250" y2="112"/>
+          </g>
+          <g>
+            <rect class="bar-up" x="16" y="86" width="8" height="26"/><rect class="bar-up" x="36" y="75" width="8" height="37"/><rect class="bar-down" x="56" y="82" width="8" height="30"/><rect class="bar-up" x="76" y="62" width="8" height="50"/><rect class="bar-up" x="96" y="47" width="8" height="65"/><rect class="bar-down" x="116" y="58" width="8" height="54"/><rect class="bar-down" x="136" y="74" width="8" height="38"/><rect class="bar-up" x="156" y="66" width="8" height="46"/><rect class="bar-up" x="176" y="48" width="8" height="64"/><rect class="bar-down" x="196" y="54" width="8" height="58"/><rect class="bar-up" x="216" y="36" width="8" height="76"/><rect class="bar-up" x="236" y="25" width="8" height="87"/><rect class="bar-up" x="256" y="15" width="8" height="97"/>
+          </g>
+          <polyline class="trend" points="8,91 34,78 58,84 84,57 108,44"/>
+          <polyline class="fall" points="108,44 132,70 150,76"/>
+          <polyline class="trend" points="150,76 176,60 201,64 224,41 248,30 276,14 294,20"/>
+          <circle class="point" cx="108" cy="44" r="3.5"/><circle class="point red" cx="150" cy="76" r="3.5"/><circle class="point" cx="276" cy="14" r="3.5"/>
+          <line class="axis" x1="0" y1="112" x2="300" y2="112"/>
+        </svg>
+      </div>
+      <h1>EKONOMSKI <span>SISTEM SRBIJE</span></h1>
+      <div class="exam">Ispit · 19. septembar · 10:00</div>
+      <div class="top-grid">
+        <div class="progress-card">
+          <div class="progress-label">Ukupan progres</div>
+          <div class="progress-big"><strong id="progressText">0 / 40</strong><span id="progressPct">obrađeno · 0%</span></div>
+          <div class="bar"><i id="progressBar"></i></div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main"></main>
+
+    <div class="footer">
+      <span>ESS · 40 pitanja</span>
+      <button class="reset" id="resetBtn">Resetuj progres</button>
+    </div>
+  </div>
+</div>
+<script>
+const sections = [
+  {title:'Privredni sistem', range:'1–6', items:[
+    'Privredni sistem - osnovno određenje i definisanje',
+    'Sadržaj i osnovne komponente privrednog sistema',
+    'Grupisanje (tipologija) privrednih sistema',
+    'Vrednovanje uspešnosti privrednih sistema',
+    'Uporedni metod i poređenje privrednih sistema',
+    'Razvoj privrednog sistema Srbije'
+  ]},
+  {title:'Makroekonomija, rast i razvoj', range:'7–12', items:[
+    'Merenje makroekonomske aktivnosti - BDP',
+    'Merenje makroekonomske aktivnosti - stopa inflacije i stopa nezaposlenosti',
+    'Merenje makroekonomske aktivnosti - kamatna stopa i devizni kurs',
+    'Privredni rast - značaj; stabilnost vs. rast',
+    'Privredni razvoj - značaj; osnovne komponente; razvijenost i nerazvijenost',
+    'Razlikovanje pojmova razvoja i rasta'
+  ]},
+  {title:'Država, institucije i ekonomska politika', range:'13–18', items:[
+    'Ekonomske funkcije države u savremenoj robnoj privredi',
+    'Institucionalna teorija države - tržišni neuspesi i uloga države',
+    'Politička makroekonomija - loše i dobre institucije',
+    'Pojam, elementi i vrste ekonomske politike',
+    'Politika i ekonomska politika na našem državnom prostoru',
+    'Formalni i stvarni ciljevi ekonomske politike'
+  ]},
+  {title:'Tranzicija i privatizacija', range:'19–28', items:[
+    'Proces tranzicije: pojam i sadržaj',
+    'Tranzicija i ideološke predrasude; ekonomska nauka i tranzicija',
+    'Privatizacija i efikasnost - problem odnosa principala i agenta',
+    'Makroekonomska osnova privatizacije',
+    'Modeli privatizacije',
+    'Specifičnosti privatizacije društvene svojine - nastanak i efikasnost društvene svojine',
+    'Mešovita preduzeća kao privatizacija društvene svojine',
+    'Privatizacija u Jugoslaviji (Srbiji) do 2000. godine',
+    'Privatizacija u Srbiji posle 2000. godine',
+    'Privatizacija i institucionalno okruženje'
+  ]},
+  {title:'Poljoprivreda', range:'29–31', items:[
+    'Ekonomsko stanje poljoprivrede od 1945. do 1957. godine',
+    'Seljačko gazdinstvo u agrarnoj politici i samoupravljanju od 1957. godine',
+    'Poljoprivreda u srednjoročnim planovima razvoja Jugoslavije od 1976. do 1985. godine'
+  ]},
+  {title:'Spoljna ekonomija i razvijenost', range:'32–36', items:[
+    'Tempo i dinamika spoljnotrgovinske razmene Srbije',
+    'Spoljni dug Srbije',
+    'Strane direktne investicije u Srbiji',
+    'Međunarodne ekonomske integracije - primer CEFTA-e',
+    'Merenje nivoa razvijenosti'
+  ]},
+  {title:'Industrija i javna preduzeća', range:'37–40', items:[
+    'Dinamika razvoja industrije u Srbiji - zaposlenost i investicije u industriji',
+    'Efekti privatizacije u Srbiji i industrija',
+    'Restrukturiranje javnih preduzeća',
+    'Koncept privatizacije javnih preduzeća'
+  ]}
+];
+const questions=[];
+let n=1;
+sections.forEach((s,si)=>s.items.forEach(text=>questions.push({n:n++,text,section:si})));
+const KEY='ess_review_v1';
+let state={done:{},bankrupt:{},redDone:{}};
+try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved) state={done:{},bankrupt:{},redDone:{},...saved}}catch(e){}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function render(){
+  const main=document.getElementById('main');
+  main.innerHTML='';
+  sections.forEach((s,si)=>{
+    const sec=document.createElement('section');sec.className='section';
+    const head=document.createElement('div');head.className='section-head';
+    head.innerHTML=`<div class="section-no">${si+1}</div><div class="section-title">${s.title}</div><div class="range">${s.range}</div>`;
+    sec.appendChild(head);
+    const items=document.createElement('div');items.className='items';
+    questions.filter(q=>q.section===si).forEach(q=>{
+      const row=document.createElement('div');row.className='item'+(state.done[q.n]?' is-done':'');
+      row.innerHTML=`<input class="done" type="checkbox" ${state.done[q.n]?'checked':''} aria-label="Završeno pitanje ${q.n}">
+        <div class="qno">${q.n}.</div><div class="qtext">${q.text}</div>
+        <button class="bankrupt ${state.bankrupt[q.n]?'active':''}" title="BANKROT — prebaci u Crvenu zonu" aria-label="Bankrot pitanje ${q.n}">📉</button>`;
+      row.querySelector('.done').addEventListener('change',e=>{state.done[q.n]=e.target.checked;save();render();});
+      row.querySelector('.bankrupt').addEventListener('click',()=>{state.bankrupt[q.n]=!state.bankrupt[q.n];if(!state.bankrupt[q.n]) delete state.redDone[q.n];save();render();});
+      items.appendChild(row);
+    });
+    sec.appendChild(items);main.appendChild(sec);
+    if(si<sections.length-1){const p=document.createElement('div');p.className='pause';p.textContent='pauza';main.appendChild(p)}
+  });
+  renderRedZone(main);updateProgress();
+}
+function renderRedZone(main){
+  const flagged=questions.filter(q=>state.bankrupt[q.n]);
+  const zone=document.createElement('section');zone.className='red-zone';
+  zone.innerHTML=`<div class="red-head"><div class="crash-icon">📉</div><div><h2>CRVENA ZONA</h2></div><div class="red-count">${flagged.length} ${flagged.length===1?'pitanje':'pitanja'}</div></div><div class="red-list"></div>`;
+  const list=zone.querySelector('.red-list');
+  if(!flagged.length){list.innerHTML='<div class="red-empty">Nema pitanja u bankrotu. Za sada.</div>'}
+  flagged.forEach(q=>{
+    const r=document.createElement('div');r.className='red-item'+(state.redDone[q.n]?' complete':'');
+    r.innerHTML=`<input class="red-done" type="checkbox" ${state.redDone[q.n]?'checked':''} aria-label="Ponovljeno pitanje ${q.n}"><div class="red-qno">${q.n}.</div><div class="red-qtext">${q.text}</div><button class="remove-bankrupt" title="Vrati iz Crvene zone" aria-label="Ukloni pitanje ${q.n} iz Crvene zone">×</button>`;
+    r.querySelector('.red-done').addEventListener('change',e=>{state.redDone[q.n]=e.target.checked;save();render();});
+    r.querySelector('.remove-bankrupt').addEventListener('click',()=>{delete state.bankrupt[q.n];delete state.redDone[q.n];save();render();});
+    list.appendChild(r);
+  });
+  main.appendChild(zone);
+}
+function updateProgress(){
+  const done=questions.filter(q=>state.done[q.n]).length;
+  const pct=Math.round(done/questions.length*100);
+  document.getElementById('progressText').textContent=`${done} / ${questions.length}`;
+  document.getElementById('progressPct').textContent=`obrađeno · ${pct}%`;
+  document.getElementById('progressBar').style.width=pct+'%';
+}
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  if(confirm('Resetovati sve čekirano i sva BANKROT pitanja?')){state={done:{},bankrupt:{},redDone:{}};save();render();}
+});
+render();
+</script>
+</body>
+</html>
