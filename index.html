@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ESS · Ponavljanje</title>
+<title>ESS · Učenje novembar</title>
 <style>
   :root{
     --paper:#f2eee4;
@@ -103,6 +103,8 @@
   }
   .bankrupt:hover{background:rgba(139,47,43,.08)}
   .bankrupt.active{background:var(--red);color:white;border-color:var(--red)}
+  .session{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:14px 0 4px;padding:8px 12px;background:var(--green);color:var(--white);font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+  .session span:last-child{font-weight:400;letter-spacing:.06em;opacity:.85}
   .pause{display:flex;align-items:center;gap:12px;margin:13px 0 0;color:#77766f;font-size:10px;letter-spacing:.34em;text-transform:uppercase;font-style:italic;white-space:nowrap}
   .pause:before,.pause:after{content:"";height:1px;background:#aaa69b;flex:1}
   .red-zone{margin:28px 0 4px;border:1.5px solid var(--red);background:linear-gradient(90deg,rgba(139,47,43,.08),rgba(139,47,43,.02));}
@@ -155,7 +157,7 @@
         </svg>
       </div>
       <h1>EKONOMSKI <span>SISTEM SRBIJE</span></h1>
-      <div class="exam">Ispit · 19. septembar · 10:00</div>
+      <div class="exam">Ispit · 15. novembar (okvirno)</div>
       <div class="top-grid">
         <div class="progress-card">
           <div class="progress-label">Ukupan progres</div>
@@ -168,7 +170,7 @@
     <main id="main"></main>
 
     <div class="footer">
-      <span>ESS · 40 pitanja</span>
+      <span>ESS · 40 pitanja · 4 sesije · brzi prolaz 9–14. nov</span>
       <button class="reset" id="resetBtn">Resetuj progres</button>
     </div>
   </div>
@@ -230,10 +232,16 @@ const sections = [
     'Koncept privatizacije javnih preduzeća'
   ]}
 ];
+const SESSIONS=[
+  {from:1,to:11,label:'Sesija 1',when:'nedelja 19–25. okt'},
+  {from:12,to:21,label:'Sesija 2',when:'nedelja 19–25. okt'},
+  {from:22,to:29,label:'Sesija 3',when:'nedelja 26. okt–1. nov'},
+  {from:30,to:40,label:'Sesija 4',when:'nedelja 2–8. nov'}
+];
 const questions=[];
 let n=1;
 sections.forEach((s,si)=>s.items.forEach(text=>questions.push({n:n++,text,section:si})));
-const KEY='ess_review_v1';
+const KEY='ess_ucenje_nov_v1';
 let state={done:{},bankrupt:{},redDone:{}};
 try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved) state={done:{},bankrupt:{},redDone:{},...saved}}catch(e){}
 function save(){localStorage.setItem(KEY,JSON.stringify(state))}
@@ -247,6 +255,10 @@ function render(){
     sec.appendChild(head);
     const items=document.createElement('div');items.className='items';
     questions.filter(q=>q.section===si).forEach(q=>{
+      const ss=SESSIONS.find(x=>x.from===q.n);
+      if(ss){const dn=questions.filter(z=>z.n>=ss.from&&z.n<=ss.to&&state.done[z.n]).length,tot=ss.to-ss.from+1;
+        const d=document.createElement('div');d.className='session';
+        d.innerHTML=`<span>${ss.label} · pitanja ${ss.from}–${ss.to}</span><span>${ss.when} · ${dn}/${tot}</span>`;items.appendChild(d);}
       const row=document.createElement('div');row.className='item'+(state.done[q.n]?' is-done':'');
       row.innerHTML=`<input class="done" type="checkbox" ${state.done[q.n]?'checked':''} aria-label="Završeno pitanje ${q.n}">
         <div class="qno">${q.n}.</div><div class="qtext">${q.text}</div>
